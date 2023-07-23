@@ -157,20 +157,23 @@ class LogMonitorApp(tk.Tk):
 
 
 if __name__ == "__main__":
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f'dir_path = {dir_path}')
+    script_name = os.path.basename(__file__)
+    print(f'Script name ({script_name})')
+
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    print(f'Script directory ({script_dir})')
 
     cwd = os.getcwd()
-    print(f'cwd = {cwd}')
+    print(f'Current working directory ({cwd})')
 
     parser = argparse.ArgumentParser(
         description="Log Monitor - Monitor log files in a folder and display them in a GUI.")
-    parser.add_argument("--folder_path", help="Path to monitor for log files", default=".")
+    parser.add_argument("--path", help="Path to monitor for log files", default=".")
     args = parser.parse_args()
-    print(f'args.folder_path = {args.folder_path}')
+    print(f'Monitoring path ({args.path})')
 
     try:
-        app = LogMonitorApp(args.folder_path)
+        app = LogMonitorApp(args.path)
         app.mainloop()
     except ValueError as e:
         print(f"Error: {e}")
