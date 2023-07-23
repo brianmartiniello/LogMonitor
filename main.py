@@ -63,9 +63,11 @@ class LogMonitorApp(tk.Tk):
                         print(f'New - filename = {filename}')
                         self.file_positions[filename] = 0
                         tab = ttk.Frame(self.notebook)
+                        tab.columnconfigure(0, weight=1)  # Configure the column to expand
                         self.notebook.add(tab, text=filename)
-                        text_widget = tk.Text(tab)
-                        text_widget.pack(expand=True, fill=tk.BOTH)
+                        text_widget = tk.Text(tab, wrap="none")  # Disable word wrapping
+                        text_widget.grid(row=0, column=0, sticky="nsew")  # Use grid for text widget
+                        #text_widget.pack(expand=True, fill=tk.BOTH)
                         text_widget.bind("<Control-MouseWheel>",
                                          lambda event,
                                          widget=text_widget: adjust_font_size(event, widget))
@@ -74,12 +76,12 @@ class LogMonitorApp(tk.Tk):
 
                         # Add vertical scrollbar
                         y_scrollbar = tk.Scrollbar(tab, command=text_widget.yview)
-                        y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+                        y_scrollbar.grid(row=0, column=1, sticky="ns")  # Use grid for vertical scrollbar
                         text_widget.config(yscrollcommand=y_scrollbar.set)
 
                         # Add horizontal scrollbar
                         x_scrollbar = tk.Scrollbar(tab, command=text_widget.xview, orient=tk.HORIZONTAL)
-                        x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+                        x_scrollbar.grid(row=1, column=0, sticky="ew")  # Use grid for horizontal scrollbar
                         text_widget.config(xscrollcommand=x_scrollbar.set)
 
                         # Update the menu with new file
@@ -109,11 +111,13 @@ class LogMonitorApp(tk.Tk):
                     text_widget.insert(tk.END, new_content)
                     self.file_positions[filename] = file.tell()
 
-                    # Add asterisk to the beginning of the tab name
-                    tab_id = self.file_tab_ids[filename]
-                    tab_text = self.notebook.tab(tab_id, "text")
-                    if not tab_text.startswith("*"):
-                        self.notebook.tab(tab_id, text="*" + tab_text)
+                    # Add asterisk to the beginning of the tab name if not currently selected
+                    current_tab_text = self.notebook.tab(self.notebook.select(), "text")
+                    if current_tab_text != filename:
+                        tab_id = self.file_tab_ids[filename]
+                        tab_text = self.notebook.tab(tab_id, "text")
+                        if not tab_text.startswith("*"):
+                            self.notebook.tab(tab_id, text="*" + tab_text)
 
         except FileNotFoundError as ex:
             print(f"File not found: '{filename}'")
@@ -151,10 +155,7 @@ if __name__ == "__main__":
     print(f'args.folder_path = {args.folder_path}')
 
     try:
-        print(f'Define app')
         app = LogMonitorApp(args.folder_path)
-        print(f'START - app.mainloop()')
         app.mainloop()
-        print(f'END - app.mainloop()')
     except ValueError as e:
         print(f"Error: {e}")
