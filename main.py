@@ -4,6 +4,7 @@ import argparse
 import tkinter as tk
 from tkinter import ttk
 import threading
+import signal
 
 
 def adjust_font_size(event, text_widget):
@@ -41,10 +42,18 @@ class LogMonitorApp(tk.Tk):
 
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
 
+        # Set up signal handler to catch the interrupt signal (Ctrl+C)
+        signal.signal(signal.SIGINT, self.handle_interrupt)
+
         # Start monitor thread
         self.monitor_thread = threading.Thread(target=self.monitor_folder)
         self.monitor_thread.daemon = True
         self.monitor_thread.start()
+
+    def handle_interrupt(self, signum, frame):
+        # Handle interrupt signal (e.g., Ctrl+C)
+        print("Received interrupt signal. Shutting down...")
+        self.destroy()  # Close the main window and end the application
 
     def monitor_folder(self):
         while True:
