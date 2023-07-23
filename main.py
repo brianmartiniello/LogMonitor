@@ -60,14 +60,14 @@ class LogMonitorApp(tk.Tk):
             for filename in file_list:
                 if filename.endswith(".log"):
                     if filename not in self.file_positions:
-                        print(f'New - filename = {filename}')
+#                        print(f'New - filename = {filename}')
                         self.file_positions[filename] = 0
                         tab = ttk.Frame(self.notebook)
                         tab.columnconfigure(0, weight=1)  # Configure the column to expand
                         self.notebook.add(tab, text=filename)
                         text_widget = tk.Text(tab, wrap="none")  # Disable word wrapping
                         text_widget.grid(row=0, column=0, sticky="nsew")  # Use grid for text widget
-                        #text_widget.pack(expand=True, fill=tk.BOTH)
+#                        text_widget.pack(expand=True, fill=tk.BOTH)
                         text_widget.bind("<Control-MouseWheel>",
                                          lambda event,
                                          widget=text_widget: adjust_font_size(event, widget))
@@ -84,9 +84,8 @@ class LogMonitorApp(tk.Tk):
                         x_scrollbar.grid(row=1, column=0, sticky="ew")  # Use grid for horizontal scrollbar
                         text_widget.config(xscrollcommand=x_scrollbar.set)
 
-                        # Update the menu with new file
-                        self.file_menu.add_command(label=filename,
-                                                   command=lambda file=filename: self.show_file_tab(file))
+                        # Update the file menu with sorted list
+                        self.update_file_menu()
 
                     self.update_display(filename)
 
@@ -100,6 +99,13 @@ class LogMonitorApp(tk.Tk):
                     del self.file_tab_ids[filename]
 
             time.sleep(1)  # Adjust the interval for checking updates
+
+    def update_file_menu(self):
+        self.file_menu.delete(0, tk.END)  # Clear the existing menu items
+        file_list = list(self.file_positions.keys())
+        file_list.sort()  # Sort the list alphabetically
+        for filename in file_list:
+            self.file_menu.add_command(label=filename, command=lambda file=filename: self.show_file_tab(file))
 
     def update_display(self, filename):
         try:
