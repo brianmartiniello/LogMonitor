@@ -31,6 +31,7 @@ class LogMonitorApp(tk.Tk):
         self.file_positions = {}  # Dictionary to store the last known file positions
         self.file_tab_ids = {}  # Dictionary to store the tab IDs
         self.file_text_widgets = {}  # Dictionary to store the text widgets
+        self.file_asterisks = {}
 
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(expand=True, fill=tk.BOTH)
@@ -82,6 +83,7 @@ class LogMonitorApp(tk.Tk):
                                          widget=text_widget: adjust_font_size(event, widget))
                         self.file_text_widgets[filename] = text_widget
                         self.file_tab_ids[filename] = self.get_file_tab_id(filename)
+                        self.file_asterisks[filename] = filename
 
                         # Add vertical scrollbar
                         y_scrollbar = tk.Scrollbar(tab, command=text_widget.yview)
@@ -106,6 +108,10 @@ class LogMonitorApp(tk.Tk):
                     del self.file_positions[filename]
                     del self.file_text_widgets[filename]
                     del self.file_tab_ids[filename]
+                    del self.file_asterisks[filename]
+
+                    # Update the file menu with sorted list
+                    self.update_file_menu()
 
             time.sleep(1)  # Adjust the interval for checking updates
 
@@ -114,7 +120,7 @@ class LogMonitorApp(tk.Tk):
         file_list = list(self.file_positions.keys())
         file_list.sort()  # Sort the list alphabetically
         for filename in file_list:
-            self.file_menu.add_command(label=filename, command=lambda file=filename: self.show_file_tab(file))
+            self.file_menu.add_command(label=self.file_asterisks[filename], command=lambda file=filename: self.show_file_tab(file))
 
     def update_display(self, filename):
         try:
@@ -132,7 +138,12 @@ class LogMonitorApp(tk.Tk):
                         tab_id = self.file_tab_ids[filename]
                         tab_text = self.notebook.tab(tab_id, "text")
                         if not tab_text.startswith("*"):
-                            self.notebook.tab(tab_id, text="*" + tab_text)
+                            asterisk_tab_text = "*" + tab_text
+                            self.notebook.tab(tab_id, text=asterisk_tab_text)
+                            self.file_asterisks[filename] = asterisk_tab_text
+
+                            # Update the file menu with sorted list
+                            self.update_file_menu()
 
         except FileNotFoundError as ex:
             print(f"File not found: '{filename}'")
@@ -142,7 +153,12 @@ class LogMonitorApp(tk.Tk):
         # Remove asterisk when the tab is clicked
         current_tab_text = self.notebook.tab(self.notebook.select(), "text")
         if current_tab_text.startswith("*"):
+            filename = current_tab_text[1:]
             self.notebook.tab(self.notebook.select(), text=current_tab_text[1:])
+            self.file_asterisks[filename] = filename
+
+            # Update the file menu with sorted list
+            self.update_file_menu()
 
     def show_file_tab(self, filename):
         tab_id = self.get_file_tab_id(filename)
@@ -151,7 +167,10 @@ class LogMonitorApp(tk.Tk):
 
     def get_file_tab_id(self, filename):
         for tab_id in self.notebook.tabs():
-            if self.notebook.tab(tab_id, "text") == filename:
+            tab_text = self.notebook.tab(tab_id, "text")
+            if tab_text == filename:
+                return tab_id
+            if tab_text == "*" + filename:
                 return tab_id
         return None
 
